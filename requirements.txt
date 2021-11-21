@@ -1,0 +1,5 @@
+wheel==0.37.0
+FastAPI==0.70.0
+Uvicorn[standard]==0.15.0
+python-multipart==0.0.5
+passlib[bcrypt]==1.7.4
