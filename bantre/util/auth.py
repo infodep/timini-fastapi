@@ -15,17 +15,22 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_user_by_username(db: Session, username: str):
     return db.query(UserModel).filter(UserModel.username == username).first()
 
+
 def get_user_by_uid(db: Session, id: int):
     return db.query(UserModel).filter(UserModel.id == id).first()
+
 
 def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(username=username)
@@ -35,27 +40,28 @@ def authenticate_user(db: Session, username: str, password: str):
         return False
     return user
 
-def decode_token(db: Session, token: str, settings: config.Settings = Depends(config.get_settings)) -> User:  
+
+def decode_token(
+    db: Session, token: str, settings: config.Settings = Depends(config.get_settings)
+) -> User:
     try:
         payload = jwt.decode(token, settings.s)
     except JWTError:
         return None
 
-    return User(
-        id=1,  
-        username="test",
-        groups = {1: "tiministene"}
-        )
+    return User(id=1, username="test", groups={1: "tiministene"})
+
 
 async def token_required(token: str = Depends(oauth2_scheme)) -> User:
     user = decode_token(token)
     if user == None:
         raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authenticated",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user
+
 
 async def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
     """
@@ -64,15 +70,15 @@ async def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
     """
     user = decode_token(token)
     if user == None:
-        user = User(
-            id = -1,
-            username = "Anonymous",
-        admin = False,
-        email = Null
-        )
+        user = User(id=-1, username="Anonymous", admin=False, email=Null)
     return user
 
-def create_access_token(id: int, expires_delta = Optional[datetime], settings: config.Settings = Depends(config.get_settings)):
+
+def create_access_token(
+    id: int,
+    expires_delta=Optional[datetime],
+    settings: config.Settings = Depends(config.get_settings),
+):
     to_encode = {
         "id": id,
         "token_type": "access_token",
@@ -82,10 +88,17 @@ def create_access_token(id: int, expires_delta = Optional[datetime], settings: c
     else:
         expire = datetime.utcnow() + timedelta(settings.access_token_lifetime)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.access_token_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.access_token_key, algorithm=settings.jwt_algorithm
+    )
     return encoded_jwt
 
-def create_refresh_token(id: int, expires_delta = Optional[datetime], settings: config.Settings = Depends(config.get_settings)):
+
+def create_refresh_token(
+    id: int,
+    expires_delta=Optional[datetime],
+    settings: config.Settings = Depends(config.get_settings),
+):
     to_encode = {
         "id": id,
         "token_type": "refresh_token",
@@ -95,5 +108,7 @@ def create_refresh_token(id: int, expires_delta = Optional[datetime], settings: 
     else:
         expire = datetime.utcnow() + timedelta(settings.access_token_lifetime)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.refresh_token_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.refresh_token_key, algorithm=settings.jwt_algorithm
+    )
     return encoded_jwt

@@ -8,3 +8,4 @@ mysqlclient==2.1.0
 cryptography==36.0.0
 python-jose[cryptography]==3.3.0
 SQLAlchemy==1.4.22
+alembic==1.7.5

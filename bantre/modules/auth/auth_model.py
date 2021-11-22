@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer
 from bantre.database import Base
 
+
 class TokenModel(Base):
     __tablename__ = "refresh_tokens"
     id = Column(Integer, primary_key=True)

@@ -14,3 +14,7 @@ Med FastAPI følger OpenAPI, det vil si at API'en dokumenterer seg selv. Dokumen
 [alternaltiv docs](http://127.0.0.1:8000/redoc)
 '
 TODO: https://auth0.com/docs/security/tokens/refresh-tokens/refresh-token-rotation
+
+## Alembic
+
+Vi bruker alembic for migrations.
