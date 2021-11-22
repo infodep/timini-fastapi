@@ -48,11 +48,11 @@ def decode_token(
         payload = jwt.decode(token, settings.s)
     except JWTError:
         return None
-
+    # TODO: Cont
     return User(id=1, username="test", groups={1: "tiministene"})
 
 
-async def token_required(token: str = Depends(oauth2_scheme)) -> User:
+def token_required(token: str = Depends(oauth2_scheme)) -> User:
     user = decode_token(token)
     if user == None:
         raise HTTPException(
@@ -63,7 +63,7 @@ async def token_required(token: str = Depends(oauth2_scheme)) -> User:
     return user
 
 
-async def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
+def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
     """
     This function is like token_required, but returns the anonymous user if not validated.
     It is very important to make sure that the front end makes sure it is logged in so that we dont make a bunch of db entries as the anonymous user
