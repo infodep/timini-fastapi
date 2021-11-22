@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from bantre.modules.article.article_model import ArticleModel
 from bantre.util.auth import User, token_required
-from bantre.database import SessionLocal
+from bantre.database import get_db
 
 article_router = APIRouter()
 
@@ -26,8 +26,8 @@ class Article(ArticleBase):
         orm_mode = True
 
 @article_router.get("/")
-def get_all_articles(current_user: User = Depends(token_required)):
+def get_all_articles(current_user: User = Depends(token_required), ):
     current_user
     query = select(ArticleModel).order_by(ArticleModel.touched)
-    result = SessionLocal.execute(query)
+    result = get_db().execute(query)
     return result.all()

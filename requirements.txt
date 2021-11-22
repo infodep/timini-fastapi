@@ -3,3 +3,4 @@ FastAPI==0.70.0
 Uvicorn[standard]==0.15.0
 python-multipart==0.0.5
 passlib[bcrypt]==1.7.4
+mysqlclient==2.1.0

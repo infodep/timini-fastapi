@@ -5,11 +5,10 @@ from sqlalchemy.orm import relationship
 from bantre.database import Base
 
 entities_sections = Table('entities_sections',
-                             Column('entity_id', Integer,
-                                       ForeignKey('entities.id')),
-                             Column('section_id', Integer,
-                                       ForeignKey('sections.id'))
-                             )
+    Base.metadata,
+    Column('entity_id', Integer, ForeignKey('entities.id')),
+    Column('section_id', Integer, ForeignKey('sections.id'))
+)
 
 
 class EntityModel(Base):

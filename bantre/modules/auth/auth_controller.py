@@ -1,18 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from bantre.modules.article.article_model import AuthModel
-from bantre.system.user import UserModel, UserInDB
+from bantre.modules.auth.auth_model import TokenModel
+from bantre.util.auth import authenticate_user, create_access_token
+from bantre.util import config
+from bantre.database import get_db
 
 auth_router = APIRouter()
 
-@auth_router.post("/login")
-async def login(formdata: OAuth2PasswordRequestForm = Depends()):
-    query = select(UserModel).where(UserModel.username == formdata.username)
-    user_dict = Session.execute(query).fetchone()
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = UserInDB
+# Return model 
+class Token(BaseModel):
+    id: int
+    exp: datetime
+
+@auth_router.post("/login", response_model=Token)
+async def login(formdata: OAuth2PasswordRequestForm = Depends(), settings: config.Settings = Depends(config.get_settings)):
+    user = authenticate_user(get_db(), formdata.username, formdata.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    access_token_expires = timedelta(minutes=settings.access_token_lifetime)
+    access_token = create_access_token(
+        id=user.id, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

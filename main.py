@@ -7,6 +7,7 @@ from bantre.modules.routes import v1_router
 
 app = FastAPI()
 
+
 class Item(BaseModel):
     name: str
     price: float
