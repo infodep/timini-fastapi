@@ -1,6 +1,10 @@
 wheel==0.37.0
 FastAPI==0.70.0
+pydantic==1.8.2
 Uvicorn[standard]==0.15.0
 python-multipart==0.0.5
 passlib[bcrypt]==1.7.4
 mysqlclient==2.1.0
+cryptography==36.0.0
+python-jose[cryptography]==3.3.0
+SQLAlchemy==1.4.22

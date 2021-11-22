@@ -1,32 +1,33 @@
 from datetime import datetime, timedelta
-from functools import wraps
 from typing import Optional
-import jwt
+from jose import jwt, JWTError
+from sqlalchemy.sql.elements import Null
 
 from bantre.system.user import UserModel, User, UserInDB
 from bantre.util import config
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 def hash_password(password: str) -> str:
-    return CryptContext.hash(password)
+    return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return CryptContext.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
 
-def get_user_by_username(db: Session, username: str) -> UserInDB:
+def get_user_by_username(db: Session, username: str):
     return db.query(UserModel).filter(UserModel.username == username).first()
 
-def get_user_by_uid(db: Session, id: int) -> UserInDB:
+def get_user_by_uid(db: Session, id: int):
     return db.query(UserModel).filter(UserModel.id == id).first()
 
-def authenticate_user(db: Session, username: str, password: str) -> bool|User:
+def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(username=username)
     if not user:
         return False
@@ -34,8 +35,11 @@ def authenticate_user(db: Session, username: str, password: str) -> bool|User:
         return False
     return user
 
-def decode_token(db: Session, token: str) -> User:  
-
+def decode_token(db: Session, token: str, settings: config.Settings = Depends(config.get_settings)) -> User:  
+    try:
+        payload = jwt.decode(token, settings.s)
+    except JWTError:
+        return None
 
     return User(
         id=1,  
@@ -53,13 +57,25 @@ async def token_required(token: str = Depends(oauth2_scheme)) -> User:
                 )
     return user
 
-async def token_optional(token: str = Depends(oauth2_scheme)) -> User:
+async def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
+    """
+    This function is like token_required, but returns the anonymous user if not validated.
+    It is very important to make sure that the front end makes sure it is logged in so that we dont make a bunch of db entries as the anonymous user
+    """
     user = decode_token(token)
+    if user == None:
+        user = User(
+            id = -1,
+            username = "Anonymous",
+        admin = False,
+        email = Null
+        )
     return user
 
 def create_access_token(id: int, expires_delta = Optional[datetime], settings: config.Settings = Depends(config.get_settings)):
     to_encode = {
         "id": id,
+        "token_type": "access_token",
     }
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -67,4 +83,17 @@ def create_access_token(id: int, expires_delta = Optional[datetime], settings: c
         expire = datetime.utcnow() + timedelta(settings.access_token_lifetime)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.access_token_key, algorithm=settings.jwt_algorithm)
+    return encoded_jwt
+
+def create_refresh_token(id: int, expires_delta = Optional[datetime], settings: config.Settings = Depends(config.get_settings)):
+    to_encode = {
+        "id": id,
+        "token_type": "refresh_token",
+    }
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(settings.access_token_lifetime)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.refresh_token_key, algorithm=settings.jwt_algorithm)
     return encoded_jwt

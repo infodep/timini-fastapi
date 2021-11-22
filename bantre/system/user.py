@@ -71,21 +71,21 @@ class User(BaseModel):
     id: int
     username: str
     email: str
-    language: str
-    timezone: str
-    last_activity: int
-    login_time: datetime
-    logout_time: datetime
-    status: bool
-    hidden: bool
-    started_year: int
-    # groups: List[Dict["Group", Dict[Times, datetime]]]
-    config: UserConfig
+    language: Optional[str] = "norwegian"
+    timezone: Optional[str] = "Europe/Oslo"
     admin: Optional[bool] = False
     theme: Optional[ThemeName] = "light"
 
 class UserInDB(User):
     password: str
+    login_time: datetime
+    logout_time: datetime
+    groups: List[Dict[int, Dict[Times, datetime]]]
+    status: bool
+    hidden: bool
+    last_activity: int
+    started_year: int
+    config: UserConfig
 
 # from bantre.system.group import Group
 # User.update_forward_refs()

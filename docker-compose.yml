@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  backend:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - 8002:80
+  db:
+    image: mysql:8.0.26
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE: timini
+      MYSQL_USER: bucky
+      MYSQL_PASSWORD: timini
+      MYSQL_ROOT_PASSWORD: timini
+    volumes:
+      - .dbdata:/var/lib/mysql
+    ports:
+      - 33069:3306
+    command:
+      [
+        "mysqld",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+      ]
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: on-failure
+    ports:
+      - 8082:80
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: Timini
+    depends_on:
+      - db
