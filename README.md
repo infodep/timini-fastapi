@@ -21,4 +21,9 @@ TODO: `https://auth0.com/docs/security/tokens/refresh-tokens/refresh-token-rotat
 
 ## Alembic
 
-Vi bruker alembic for migrations.
+Vi bruker alembic for migrations. Du må installere alembic på din egen pc for at migrasjonsskriptene skal komme på git. Det gjør du ved `pip install alembic` eller `pip install -r requirements.txt`. Siste alternaltiv gir deg alt av andre plugins også, som er fint for code completion.
+
+<!-- Det går kanskje an å generere fra inne i docker men jeg fikk det ikke til å funke --iverks  -->
+
+For å generere et skript skriver du i din egen terminal (i timini-fastapi mappen) `alembic revision --autogenerate -m <hva gjør skriptet>`.
+For å kjøre skriptet går du inn i docker containeren som forklart tidligere og kjører `alembic upgrade head`. Her betyr head "nyeste versjon". Du kan også spesifisere en versjon med den rare strengen før understreken i filnavnet.

@@ -1,5 +1,5 @@
 FROM python:3.10
-ENV PYTHONBUFFERED 1
+ENV PYTHONBUFFERED=1
 ENV PYTHONPATH = "${PYTHONPATH}: /root/.local/bin"
 RUN pip install --upgrade pip
 WORKDIR /app

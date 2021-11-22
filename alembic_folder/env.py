@@ -19,7 +19,10 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from target_metadata import target_metadata
+#from alembic_folder.target_metadata import target_metadata
+from bantre.database import Base
+from alembic_folder.all_models import *
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -29,7 +32,7 @@ load_dotenv()
 def get_url():
     user = os.getenv("MYSQL_USER", "root")
     password = os.getenv("MYSQL_PASSWORD")
-    hostname = os.getenv("MYSQL_HOSTNAME", "db")
+    hostname = os.getenv("MYSQL_HOSTNAME", "localhost:33069") # This is a terrible solution but it makes it work i guess
     database = os.getenv("MYSQL_DATABASE", "timini")
     return f"mysql://{user}:{password}@{hostname}/{database}"
 
