@@ -1,30 +1,7 @@
-import pytest 
-from fastapi.testclient import TestClient
-from sqlmodel import create_engine, Session, SQLModel
-from sqlmodel.pool import StaticPool
+from sqlmodel import Session
 
-from bantre.app import app
-from bantre.database import get_db
 from bantre.system.user import User
-
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    def get_db_override():
-        return session
-    
-    app.dependency_overrides[get_db] = get_db_override
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
+from .conftest import session_fixture, client_fixture
 
 def test_user_orm(session: Session):
     # Create user using the orm
@@ -45,6 +22,23 @@ def test_user_orm(session: Session):
     assert get_user.username == "bucky"
     assert get_user.password == "timini"
     assert get_user.email == "ricky@bucky.com"
+
+    # Update the users username
+    get_user.username = "ricky"
+    session.add(get_user)
+    session.commit()
+
+    # Assert that users username is really updated
+    updated_user = session.get(User, post_user.id)
+    assert updated_user.username == "ricky"
+
+    # Delete the user
+    session.delete(get_user)
+    session.commit()
+    
+    # Assert that it really is deleted
+    deleted_user = session.get(User, post_user.id)
+    assert deleted_user == None
 
 # def test_create_user(client: TestClient): # Navnene på variablene må være det samme som står i pytest.fixture dekoratorene
 #     # This will be boilerplate for running tests using endpoints
