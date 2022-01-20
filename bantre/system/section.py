@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class SectionBase(SQLModel):
     name: str
-    forum_priority: int
+    description: str
 
 class Section(SectionBase, table=True):
     """This is an actual database table because it has table=True"""

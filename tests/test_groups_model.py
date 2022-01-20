@@ -1,4 +1,3 @@
-from sqlalchemy.sql.expression import desc
 from sqlmodel import Session
 
 from bantre.system.user import User

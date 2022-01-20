@@ -1,10 +1,13 @@
 from datetime import datetime
+from email.policy import default
 from typing import List, Optional, TYPE_CHECKING
+from black import main
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import func
 
 if TYPE_CHECKING:
     from .section import Section
+    from .user import User
 
 class EntitySectionLink(SQLModel, table=True):
     entity_id: Optional[int] = Field(
@@ -16,14 +19,20 @@ class EntitySectionLink(SQLModel, table=True):
 
 
 class EntityBase(SQLModel):
-    module_id: int
-    section_id: int
-    
+    pass    
 class Entity(EntityBase, table=True):
     """This is an actual database table because it has table=True"""
     id: Optional[int] = Field(default=None, primary_key=True)
-    creator_id: int
     created: Optional[datetime] = Field(sa_column_kwargs={"server_default": func.now()})
     touched: Optional[datetime] = Field(sa_column_kwargs={"server_default": func.now(), "server_onupdate": func.now()})
-    views: int
+    views: Optional[int] = 0
+    section_id: Optional[int] = Field(foreign_key="section.id")
+    main_section: "Section" = Relationship()
     sections: List["Section"] = Relationship(back_populates="entities", link_model=EntitySectionLink)
+    creator_id: Optional[int] = Field(foreign_key="user.id")
+    creator: Optional["User"] = Relationship()
+    type: str
+    __mapper_args__ = {
+        'polymorphic_identity': 'article',
+        'polymorphic_on': 'type'
+    }
