@@ -20,9 +20,8 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 #from alembic_folder.target_metadata import target_metadata
-from bantre.database import Base
-from alembic_folder.all_models import *
-target_metadata = Base.metadata
+from bantre.database import SQLModel # TODO: watch https://sqlmodel.tiangolo.com/advanced/ for when he adds alembic tutorial
+target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
