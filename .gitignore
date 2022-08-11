@@ -116,6 +116,9 @@ dmypy.json
 # Mysql database data
 .dbdata/
 
+# Python development environment
+poetry.lock
+
 ; # Docker files
 ; Dockerfile
 ; docker-compose.yml
