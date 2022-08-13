@@ -1,12 +1,10 @@
-from pydantic import BaseModel
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.dialects.mysql.types import TINYINT
 from sqlalchemy.orm import relationship
-from enum import Enum
-from typing import ForwardRef, List, Dict
 
-from bantre.system.user import users_groups
 from bantre.database import Base
+from bantre.system.user import users_groups
+
 
 # Relational table between groups and sections
 groups_sections = Table(
@@ -44,7 +42,6 @@ class GroupModel(Base):
 # class Group(BaseModel):
 #     id: int
 #     name: str
-#     type: int
 #     description: str
 #     members: List["User"]
 #     sections_permissions: List[Dict[Section, Dict[str, bool]]]

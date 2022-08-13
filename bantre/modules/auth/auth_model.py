@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer
+
 from bantre.database import Base
 
 

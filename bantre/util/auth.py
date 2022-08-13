@@ -1,15 +1,16 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import jwt, JWTError
-from sqlalchemy.sql.elements import Null
-
-from bantre.system.user import UserModel, User, UserInDB
-from bantre.util import config
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import Null
+
+from bantre.system.user import User, UserInDB, UserModel
+from bantre.util import config
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,7 +34,7 @@ def get_user_by_uid(db: Session, id: int):
 
 
 def authenticate_user(db: Session, username: str, password: str):
-    user = get_user_by_username(username=username)
+    user = get_user_by_username(db=db, username=username)
     if not user:
         return False
     if not verify_password(password, user.password):
@@ -45,16 +46,17 @@ def decode_token(
     db: Session, token: str, settings: config.Settings = Depends(config.get_settings)
 ) -> User:
     try:
-        payload = jwt.decode(token, settings.s)
+        payload = jwt.decode(token, settings.access_token_key)
     except JWTError:
         return None
     # TODO: Cont
+    print(payload)
     return User(id=1, username="test", groups={1: "tiministene"})
 
 
 def token_required(token: str = Depends(oauth2_scheme)) -> User:
     user = decode_token(token)
-    if user == None:
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -69,7 +71,7 @@ def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
     It is very important to make sure that the front end makes sure it is logged in so that we dont make a bunch of db entries as the anonymous user
     """
     user = decode_token(token)
-    if user == None:
+    if user is None:
         user = User(id=-1, username="Anonymous", admin=False, email=Null)
     return user
 

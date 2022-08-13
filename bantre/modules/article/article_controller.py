@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select
 
+from bantre.database import get_db
 from bantre.modules.article.article_model import ArticleModel
 from bantre.util.auth import User, token_required
-from bantre.database import get_db
+
 
 article_router = APIRouter()
 

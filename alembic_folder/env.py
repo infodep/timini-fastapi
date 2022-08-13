@@ -1,11 +1,11 @@
 import os
-from dotenv import load_dotenv
+
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,9 +19,14 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-#from alembic_folder.target_metadata import target_metadata
+# from alembic_folder.target_metadata import target_metadata
 from bantre.database import Base
-from alembic_folder.all_models import *
+from bantre.modules.article import article_model
+from bantre.modules.article.article_model import ArticleModel
+from bantre.modules.auth.auth_model import TokenModel
+from bantre.system import entity, group, section, user
+
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -29,12 +34,16 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 load_dotenv()
+
+
 def get_url():
-    user = os.getenv("MYSQL_USER", "root")
+    db_user = os.getenv("MYSQL_USER", "root")
     password = os.getenv("MYSQL_PASSWORD")
-    hostname = os.getenv("MYSQL_HOSTNAME", "localhost:33069") # This is a terrible solution but it makes it work i guess
+    hostname = os.getenv(
+        "MYSQL_HOSTNAME", "localhost:33069"
+    )  # This is a terrible solution but it makes it work i guess
     database = os.getenv("MYSQL_DATABASE", "timini")
-    return f"mysql://{user}:{password}@{hostname}/{database}"
+    return f"mysql://{db_user}:{password}@{hostname}/{database}"
 
 
 def run_migrations_offline():
@@ -73,11 +82,15 @@ def run_migrations_online():
     configuration["sqlalchemy.url"] = get_url()
     configuration["url"] = get_url()
     connectable = engine_from_config(
-        configuration, prefix="sqlalchemy.", poolclass=pool.NullPool,
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+        context.configure(
+            connection=connection, target_metadata=target_metadata, compare_type=True
+        )
 
         with context.begin_transaction():
             context.run_migrations()

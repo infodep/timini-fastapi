@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table
-from sqlalchemy.sql import func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Table
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from bantre.database import Base
+
 
 entities_sections = Table(
     "entities_sections",

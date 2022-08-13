@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
-from bantre.modules.auth.auth_model import TokenModel
-from bantre.util.auth import authenticate_user, create_access_token, decode_token
-from bantre.util import config
 from bantre.database import Base, get_db
+from bantre.modules.auth.auth_model import TokenModel
+from bantre.util import config
+from bantre.util.auth import authenticate_user, create_access_token, decode_token
+
 
 auth_router = APIRouter()
 
@@ -42,3 +44,4 @@ class Tokens(BaseModel):
 @auth_router.post("/refresh", response_model=Tokens)
 async def refresh(access_token: str):
     user = decode_token(get_db(), access_token)
+    print(user)
