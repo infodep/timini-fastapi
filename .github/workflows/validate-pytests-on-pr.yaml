@@ -3,7 +3,7 @@ on:
   pull_request:
 jobs:
   deploy:
-    name: Validate Pull Request (unit tests)
+    name: Unit tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -42,4 +42,4 @@ jobs:
         if: steps.cached-poetry-venv.outputs.cache-hit != 'true'
 
       - name: Test code using unit tests
-        run: PYTHONPATH=${{ matrix.function }} poetry run pytest tests/${{ matrix.function }} -m "unit" --suppress-no-test-exit-code
+        run: PYTHONPATH=${{ matrix.function }} poetry run pytest tests/${{ matrix.function }} -m "unit"
