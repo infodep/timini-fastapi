@@ -1,6 +1,5 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text
-
 from bantre.system.entity import EntityModel
+from sqlalchemy import Column, Integer, ForeignKey, String, Text
 
 
 class ArticleModel(EntityModel):

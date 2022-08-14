@@ -1,12 +1,11 @@
-from typing import Dict, List
-
-from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
+from pydantic import BaseModel
+from typing import List, Dict
 
-from bantre.database import Base
-from bantre.system.entity import EntityModel, entities_sections
 from bantre.system.group import groups_sections
+from bantre.system.entity import EntityModel, entities_sections
+from bantre.database import Base
 
 
 class SectionModel(Base):

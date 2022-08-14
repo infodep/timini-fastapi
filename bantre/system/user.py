@@ -1,15 +1,13 @@
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table, String, Text
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.mysql import INTEGER, VARBINARY, TINYINT
 from datetime import datetime
 from enum import Enum
-from typing import Dict, ForwardRef, List, Optional
-
+from typing import Dict, List, Optional, ForwardRef
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text
-from sqlalchemy.dialects.mysql import INTEGER, TINYINT, VARBINARY
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
 from bantre.database import Base
-
 
 # These are database models
 
