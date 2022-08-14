@@ -1,20 +1,16 @@
 from sqlmodel import Session
 
-from bantre.system.user import User
 from bantre.system.group import Group
-from .conftest import session_fixture, client_fixture
+from bantre.system.user import User
+
+from .conftest import client_fixture, session_fixture
+
 
 def test_group_orm(session: Session):
     # Create user and group using the orm
-    post_user = User(
-        username="bucky",
-        email="ricky@bucky.com",
-        password="timini"
-    )
+    post_user = User(username="bucky", email="ricky@bucky.com", password="timini")
     post_group = Group(
-        name="timinister",
-        description="Gruppe for alle timinister",
-        type=1
+        name="timinister", description="Gruppe for alle timinister", type=1
     )
     session.add(post_user)
     session.add(post_group)

@@ -1,15 +1,18 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import jwt, JWTError
-from sqlalchemy.sql.elements import Null
-
-from bantre.system.user import UserModel, User, UserInDB
-from bantre.util import config
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import Null
+
+from bantre.system.user import User, UserInDB, UserModel
+from bantre.util import config
+
+from ..database import get_session
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -49,12 +52,15 @@ def decode_token(
     except JWTError:
         return None
     # TODO: Cont
+    print(payload)
     return User(id=1, username="test", groups={1: "tiministene"})
 
 
-def token_required(token: str = Depends(oauth2_scheme)) -> User:
-    user = decode_token(token)
-    if user == None:
+def token_required(
+    token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
+) -> User:
+    user = decode_token(session, token)
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -69,7 +75,7 @@ def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
     It is very important to make sure that the front end makes sure it is logged in so that we dont make a bunch of db entries as the anonymous user
     """
     user = decode_token(token)
-    if user == None:
+    if user is None:
         user = User(id=-1, username="Anonymous", admin=False, email=Null)
     return user
 

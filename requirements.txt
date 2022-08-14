@@ -1,4 +1,3 @@
-wheel==0.37.0
 alembic==1.7.5
 cryptography==36.0.0
 FastAPI==0.70.0
@@ -11,3 +10,4 @@ python-multipart==0.0.5
 SQLAlchemy==1.4.22
 SQLModel==0.0.4
 Uvicorn[standard]==0.15.0
+wheel==0.37.0

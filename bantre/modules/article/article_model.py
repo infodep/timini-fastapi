@@ -1,6 +1,8 @@
-from sqlmodel import Field, Relationship, SQLModel
-from bantre.system.entity import Entity
 from typing import Optional
+
+from sqlmodel import Field, Relationship, SQLModel
+
+from bantre.system.entity import Entity
 
 
 class Article(SQLModel, table=True):
@@ -9,9 +11,8 @@ class Article(SQLModel, table=True):
     title: str
     text: str
     text_source: str
-    image: Optional[int] 
-    __mapper_args__ = {
-        'polymorphic_identity': 'article'
-    }
+    image: Optional[int]
+    __mapper_args__ = {"polymorphic_identity": "article"}
+
     def __repr__(self):
         return f"Article(title={self.title}, text={self.text}, text_source={self.text_source}, image={self.image})"

@@ -4,7 +4,7 @@
 
 # from bantre.modules.article.article_model import ArticleModel
 # from bantre.util.auth import User, token_required
-# from bantre.database import get_db
+# from bantre.database import get_session
 
 # article_router = APIRouter()
 
@@ -31,7 +31,7 @@
 
 # @article_router.get("/")
 # def get_all_articles(
-#     current_user: User = Depends(token_required), session: Session = Depends(get_db)
+#     current_user: User = Depends(token_required), session: Session = Depends(get_session)
 # ):
 #     current_user
 #     query = select(ArticleModel).order_by(ArticleModel.touched)

@@ -2,7 +2,9 @@ from sqlmodel import Session
 
 from bantre.system.group import Group, GroupSectionLink
 from bantre.system.section import Section
-from .conftest import session_fixture, client_fixture
+
+from .conftest import client_fixture, session_fixture
+
 
 def test_section_orm(session: Session):
     post_group = Group(
@@ -14,7 +16,9 @@ def test_section_orm(session: Session):
         name="test_section",
         description="section made for test",
     )
-    post_group_section_link = GroupSectionLink(group=post_group, section=post_section, read=True, write=False, admin=False)
+    post_group_section_link = GroupSectionLink(
+        group=post_group, section=post_section, read=True, write=False, admin=False
+    )
     session.add(post_group)
     session.add(post_section)
     session.add(post_group_section_link)

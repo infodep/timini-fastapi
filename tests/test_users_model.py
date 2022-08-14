@@ -1,15 +1,13 @@
 from sqlmodel import Session
 
 from bantre.system.user import User
-from .conftest import session_fixture, client_fixture
+
+from .conftest import client_fixture, session_fixture
+
 
 def test_user_orm(session: Session):
     # Create user using the orm
-    post_user = User(
-        username="bucky",
-        email="ricky@bucky.com",
-        password="timini"
-    )
+    post_user = User(username="bucky", email="ricky@bucky.com", password="timini")
     session.add(post_user)
     session.commit()
     session.refresh(post_user)
@@ -35,14 +33,15 @@ def test_user_orm(session: Session):
     # Delete the user
     session.delete(get_user)
     session.commit()
-    
+
     # Assert that it really is deleted
     deleted_user = session.get(User, post_user.id)
-    assert deleted_user == None
+    assert deleted_user is None
+
 
 # def test_create_user(client: TestClient): # Navnene på variablene må være det samme som står i pytest.fixture dekoratorene
 #     # This will be boilerplate for running tests using endpoints
-#     # Create user 
+#     # Create user
 #     response = client.post(
 #         "/v1/users", json= {
 #             "username": "bucky",
@@ -61,4 +60,3 @@ def test_user_orm(session: Session):
 #     assert data["email"] == "ricky@bucky.com"
 #     assert data["private-email"] == "ladiesman@gmail.com"
 #     assert data["birthday"] == "2006-09-10"
-    
