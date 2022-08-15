@@ -12,6 +12,7 @@ from bantre.util.auth import authenticate_user, create_access_token, decode_toke
 
 auth_router = APIRouter()
 
+
 # Return model
 class Token(BaseModel):
     id: int
@@ -45,3 +46,4 @@ class Tokens(BaseModel):
 @auth_router.post("/refresh", response_model=Tokens)
 async def refresh(access_token: str):
     user = decode_token(get_session(), access_token)
+    print(user)

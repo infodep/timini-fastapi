@@ -1,7 +1,5 @@
 from datetime import date, datetime
-from enum import Enum
-from os import link
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Literal, Optional
 
 from sqlalchemy.sql.functions import func
 from sqlmodel import Field, SQLModel
@@ -12,9 +10,7 @@ if TYPE_CHECKING:
     from .group import Group
 
 
-class ThemeName(str, Enum):
-    light = "light"
-    dark = "dark"
+ThemeName = Literal["light", "dark"]
 
 
 class UserConfigBase(SQLModel):
