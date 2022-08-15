@@ -2,15 +2,12 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, List, Literal, Optional
 
 from sqlalchemy.sql.functions import func
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Enum
 from sqlmodel.main import Relationship
 
 
 if TYPE_CHECKING:
     from .group import Group
-
-
-ThemeName = Literal["light", "dark"]
 
 
 class UserConfigBase(SQLModel):
@@ -44,7 +41,7 @@ class UserBase(SQLModel):
     language: Optional[str] = "norwegian"
     timezone: Optional[str] = "Europe/Oslo"
     admin: Optional[bool] = False
-    theme: Optional[ThemeName] = "light"
+    theme: Optional[str] = "light"
 
 
 class User(UserBase, table=True):

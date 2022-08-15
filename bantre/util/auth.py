@@ -48,7 +48,7 @@ def decode_token(
 ) -> User | None:
     try:
         payload = jwt.decode(token, settings.s)
-        user_id: str = payload.get("user_id")
+        user_id: int = payload.get("user_id")
         if user_id is None:
             return None
     except JWTError:
