@@ -1,5 +1,25 @@
 {
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  }
+    "[html]": {
+        "editor.defaultFormatter": "vscode.html-language-features",
+        "editor.tabSize": 2
+    },
+    "[javascript][javascriptreact][typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features",
+        "editor.tabSize": 2
+    },
+    "[json][jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.tabSize": 4
+    },
+    "[css][scss][less]": {
+        "editor.defaultFormatter": "vscode.css-language-features",
+        "editor.tabSize": 2
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.tabSize": 4
+    },
+    "files.insertFinalNewline": true
+    // "editor.formatOnSave": true // Anbefaler å legge denne inn i user settings, vil ikke påtvinge noen
+    // Ellers kan man formatte med Shift+Alt+F
 }

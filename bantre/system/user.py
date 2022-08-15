@@ -1,103 +1,59 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table, String, Text
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.mysql import INTEGER, VARBINARY, TINYINT
-from datetime import datetime
-from enum import Enum
-from typing import Dict, List, Optional, ForwardRef
-from pydantic import BaseModel
+from datetime import date, datetime
+from typing import TYPE_CHECKING, List, Literal, Optional
 
-from bantre.database import Base
-
-# These are database models
-
-# Relational table between users and groups
-users_groups = Table(
-    "users_groups",
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("group_id", Integer, ForeignKey("groups.id")),
-    Column("start_time", DateTime, server_default=func.now()),
-    Column("end_time", DateTime, default=datetime.max),
-)
+from sqlalchemy.sql.functions import func
+from sqlmodel import Field, SQLModel, Enum
+from sqlmodel.main import Relationship
 
 
-class UserModel(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(45), nullable=False, unique=True)
-    password = Column(VARBINARY(60), nullable=True)
-    email = Column(String(255), nullable=True)
-    language = Column(String(50), nullable=False, default="english")
-    timezone = Column(String(50), nullable=False, default="Europe/Oslo")
-    last_activity = Column(INTEGER(unsigned=True), nullable=False, default=0)
-    login_time = Column(DateTime, nullable=True)
-    logout_time = Column(DateTime, nullable=True)
-    status = Column(TINYINT(1), default=1)
-    hidden = Column(TINYINT(1), default=0)
-    started_year = Column(Integer, default=None)
-    theme = Column(String(50), default="light")
-
-    # These are imaginary columns that link the tables together
-    groups = relationship(
-        "GroupModel", secondary=users_groups, back_populates="members"
-    )
-    config = relationship(
-        "UserConfigModel", back_populates="user", uselist=False
-    )  # useList=False makes this a one-to-one relationship
+if TYPE_CHECKING:
+    from .group import Group
 
 
-class UserConfigModel(Base):
-    __tablename__ = "users_config"
-    uid = Column(Integer, ForeignKey("users.id"), primary_key=True, autoincrement=False)
-    forum_signature = Column(Text(), nullable=False, default="")
-    food_preferences = Column(Text(), nullable=False, default="")
-    card_no = Column(VARBINARY(50), nullable=True)
-    enable_pay_by_card = Column(TINYINT(1), nullable=False, default=False)
-
-    # imaginary column that connects to the UserModel
-    user = relationship("UserModel", back_populates="config", uselist=False)
-
-
-# The following are pydantic interfaces used for packaging data
-class ThemeName(str, Enum):
-    light = "light"
-    dark = "dark"
-
-
-class Times(str, Enum):
-    start_time = "start_time"
-    end_time = "end_time"
-
-
-class UserConfig(BaseModel):
+class UserConfigBase(SQLModel):
     forum_signature: str
     food_preferences: str
     card_no: str
     enable_pay_by_card: int
 
 
-class User(BaseModel):
-    id: int
+class UserConfig(UserConfigBase, table=True):
+    uid: Optional[int] = Field(default=None, primary_key=True, foreign_key="user.id")
+    user: Optional["User"] = Relationship(back_populates="config")
+
+
+class UserGroupLink(SQLModel, table=True):
+    user_id: Optional[int] = Field(
+        default=None, foreign_key="user.id", primary_key=True
+    )
+    group_id: Optional[int] = Field(
+        default=None, foreign_key="group.id", primary_key=True
+    )
+    start_time: Optional[datetime] = Field(
+        sa_column_kwargs={"server_default": func.now()}
+    )
+    end_time: Optional[datetime] = Field(sa_column_kwargs={"default": datetime.max})
+
+
+class UserBase(SQLModel):
     username: str
     email: str
     language: Optional[str] = "norwegian"
     timezone: Optional[str] = "Europe/Oslo"
     admin: Optional[bool] = False
-    theme: Optional[ThemeName] = "light"
+    theme: Optional[str] = "light"
 
 
-class UserInDB(User):
+class User(UserBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     password: str
-    login_time: datetime
-    logout_time: datetime
-    groups: List[Dict[int, Dict[Times, datetime]]]
-    status: bool
-    hidden: bool
-    last_activity: int
-    started_year: int
-    config: UserConfig
-
-
-# from bantre.system.group import Group
-# User.update_forward_refs()
+    login_time: Optional[datetime] = Field(default=datetime.now())
+    logout_time: Optional[datetime] = Field(default=datetime.now())
+    deleted: Optional[bool] = False
+    hidden: Optional[bool] = False
+    last_activity: Optional[datetime] = Field(default=datetime.now())
+    started_year: Optional[int] = Field(default=date.today().year)
+    config: Optional[UserConfig] = Relationship(back_populates="user")
+    groups: List["Group"] = Relationship(
+        back_populates="members", link_model=UserGroupLink
+    )

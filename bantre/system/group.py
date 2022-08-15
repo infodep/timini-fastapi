@@ -1,55 +1,43 @@
-from pydantic import BaseModel
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
-from sqlalchemy.dialects.mysql.types import TINYINT
-from sqlalchemy.orm import relationship
-from enum import Enum
-from typing import ForwardRef, List, Dict
+from typing import TYPE_CHECKING, List, Optional
 
-from bantre.system.user import users_groups
-from bantre.database import Base
+from sqlmodel import Field, Relationship, SQLModel
 
-# Relational table between groups and sections
-groups_sections = Table(
-    "groups_sections",
-    Base.metadata,
-    Column("group_id", Integer, ForeignKey("groups.id")),
-    Column("section_id", Integer, ForeignKey("sections.id")),
-    Column("read", TINYINT(1), default=0, index=True),
-    Column("write", TINYINT(1), default=0),
-    Column("admin", TINYINT(1), default=0),
-)
+from .user import UserGroupLink
 
 
-class GroupModel(Base):
-    __tablename__ = "groups"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=True)
-    type = Column(TINYINT(2), nullable=False, default=None)
-    description = Column(String(255), nullable=False, default=None)
-    members = relationship("UserModel", secondary=users_groups, back_populates="groups")
-    sections_permissions = relationship(
-        "SectionModel",
-        secondary=groups_sections,
-        back_populates="groups_permissions",
-        lazy="dynamic",
+if TYPE_CHECKING:
+    # This means that type-hints we add in quotes get autofill, its great
+    from .section import Section
+    from .user import User
+
+
+class GroupSectionLink(SQLModel, table=True):
+    group_id: Optional[int] = Field(
+        default=None, foreign_key="group.id", primary_key=True
     )
+    group: "Group" = Relationship(back_populates="sections_permissions")
+    section_id: Optional[int] = Field(
+        default=None, foreign_key="section.id", primary_key=True
+    )
+    section: "Section" = Relationship(back_populates="groups_permissions")
+    read: Optional[bool] = Field(default=False, index=True)
+    write: Optional[bool] = Field(default=False)
+    admin: Optional[bool] = Field(default=False)
 
 
-# # Pydantic interfaces
-# class Permission(str, Enum):
-#     read = "read"
-#     write = "write"
-#     admin = "admin"
-
-# class Group(BaseModel):
-#     id: int
-#     name: str
-#     type: int
-#     description: str
-#     members: List["User"]
-#     sections_permissions: List[Dict[Section, Dict[str, bool]]]
+class GroupBase(SQLModel):
+    name: str
+    type: int
+    description: str
 
 
-# from bantre.system.user import User
-# from bantre.system.section import Section
-# Group.update_forward_refs()
+class Group(GroupBase, table=True):
+    """This is an actual database table because it has table=True"""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    members: List["User"] = Relationship(
+        back_populates="groups", link_model=UserGroupLink
+    )
+    sections_permissions: List["GroupSectionLink"] = Relationship(
+        back_populates="group"
+    )

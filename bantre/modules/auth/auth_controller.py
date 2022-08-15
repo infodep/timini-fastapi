@@ -1,14 +1,17 @@
 from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
+from bantre.database import Session, get_session
 from bantre.modules.auth.auth_model import TokenModel
-from bantre.util.auth import authenticate_user, create_access_token, decode_token
 from bantre.util import config
-from bantre.database import Base, get_db
+from bantre.util.auth import authenticate_user, create_access_token, decode_token
+
 
 auth_router = APIRouter()
+
 
 # Return model
 class Token(BaseModel):
@@ -21,8 +24,9 @@ class Token(BaseModel):
 async def login(
     formdata: OAuth2PasswordRequestForm = Depends(),
     settings: config.Settings = Depends(config.get_settings),
+    session: Session = Depends(get_session),
 ):
-    user = authenticate_user(get_db(), formdata.username, formdata.password)
+    user = authenticate_user(session, formdata.username, formdata.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,4 +45,5 @@ class Tokens(BaseModel):
 
 @auth_router.post("/refresh", response_model=Tokens)
 async def refresh(access_token: str):
-    user = decode_token(get_db(), access_token)
+    user = decode_token(get_session(), access_token)
+    print(user)

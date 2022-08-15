@@ -1,15 +1,17 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import jwt, JWTError
-from sqlalchemy.sql.elements import Null
-
-from bantre.system.user import UserModel, User, UserInDB
-from bantre.util import config
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
+
+from bantre.system.user import User
+from bantre.util import config
+
+from ..database import get_session
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -24,16 +26,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_user_by_username(db: Session, username: str):
-    return db.query(UserModel).filter(UserModel.username == username).first()
+def get_user_by_username(db: Session, username: str) -> User | None:
+    return db.exec(select(User).where(User.username == username)).first()
 
 
-def get_user_by_uid(db: Session, id: int):
-    return db.query(UserModel).filter(UserModel.id == id).first()
+def get_user_by_uid(db: Session, id: int) -> User | None:
+    return db.get(User, id)
 
 
 def authenticate_user(db: Session, username: str, password: str):
-    user = get_user_by_username(username=username)
+    user = get_user_by_username(db=db, username=username)
     if not user:
         return False
     if not verify_password(password, user.password):
@@ -43,18 +45,22 @@ def authenticate_user(db: Session, username: str, password: str):
 
 def decode_token(
     db: Session, token: str, settings: config.Settings = Depends(config.get_settings)
-) -> User:
+) -> User | None:
     try:
         payload = jwt.decode(token, settings.s)
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            return None
     except JWTError:
         return None
-    # TODO: Cont
-    return User(id=1, username="test", groups={1: "tiministene"})
+    return get_user_by_uid(db, user_id)
 
 
-def token_required(token: str = Depends(oauth2_scheme)) -> User:
-    user = decode_token(token)
-    if user == None:
+def token_required(
+    token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
+) -> User:
+    user = decode_token(db=session, token=token)
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -63,14 +69,16 @@ def token_required(token: str = Depends(oauth2_scheme)) -> User:
     return user
 
 
-def token_optional(token: str = Depends(oauth2_scheme)) -> User | None:
+def token_optional(
+    token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
+) -> User | None:
     """
     This function is like token_required, but returns the anonymous user if not validated.
     It is very important to make sure that the front end makes sure it is logged in so that we dont make a bunch of db entries as the anonymous user
     """
-    user = decode_token(token)
-    if user == None:
-        user = User(id=-1, username="Anonymous", admin=False, email=Null)
+    user = decode_token(db=session, token=token)
+    if user is None:
+        user = User(id=-1, username="Anonymous", admin=False, email=None)
     return user
 
 

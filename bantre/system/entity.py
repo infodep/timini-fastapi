@@ -1,31 +1,45 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from datetime import datetime
+from email.policy import default
+from typing import TYPE_CHECKING, List, Optional
 
-from bantre.database import Base
-
-entities_sections = Table(
-    "entities_sections",
-    Base.metadata,
-    Column("entity_id", Integer, ForeignKey("entities.id")),
-    Column("section_id", Integer, ForeignKey("sections.id")),
-)
+from black import main
+from sqlalchemy import func
+from sqlmodel import Field, Relationship, SQLModel
 
 
-class EntityModel(Base):
-    __tablename__ = "entities"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    module_id = Column(Integer, nullable=False)
-    created = Column(DateTime, nullable=True, server_default=func.now())
-    touched = Column(
-        DateTime, nullable=True, server_default=func.now(), server_onupdate=func.now()
+if TYPE_CHECKING:
+    from .section import Section
+    from .user import User
+
+
+class EntitySectionLink(SQLModel, table=True):
+    entity_id: Optional[int] = Field(
+        default=None, foreign_key="entity.id", primary_key=True
     )
-    creator_id = Column(Integer, nullable=False)
-    section_id = Column(Integer, nullable=False)
-    views = Column(Integer, nullable=False, default=0)
-
-    __mapper_args__ = {"polymorphic_identity": "entity", "polymorphic_on": module_id}
-
-    sections = relationship(
-        "SectionModel", secondary=entities_sections, back_populates="entities"
+    section_id: Optional[int] = Field(
+        default=None, foreign_key="section.id", primary_key=True
     )
+
+
+class EntityBase(SQLModel):
+    pass
+
+
+class Entity(EntityBase, table=True):
+    """This is an actual database table because it has table=True"""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created: Optional[datetime] = Field(sa_column_kwargs={"server_default": func.now()})
+    touched: Optional[datetime] = Field(
+        sa_column_kwargs={"server_default": func.now(), "server_onupdate": func.now()}
+    )
+    views: Optional[int] = 0
+    section_id: Optional[int] = Field(foreign_key="section.id")
+    main_section: "Section" = Relationship()
+    sections: List["Section"] = Relationship(
+        back_populates="entities", link_model=EntitySectionLink
+    )
+    creator_id: Optional[int] = Field(foreign_key="user.id")
+    creator: Optional["User"] = Relationship()
+    type: str
+    __mapper_args__ = {"polymorphic_identity": "article", "polymorphic_on": "type"}
