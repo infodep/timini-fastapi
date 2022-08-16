@@ -116,9 +116,5 @@ dmypy.json
 # Mysql database data
 .dbdata/
 
-; # Docker files
-; Dockerfile
-; docker-compose.yml
-
-; # Secrets
-; bantre/util/config.py
+# Multi root workspace config (private config)
+*.code-workspace
