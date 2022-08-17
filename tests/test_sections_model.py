@@ -1,9 +1,7 @@
-from sqlmodel import Session
-
 from bantre.system.group import Group, GroupSectionLink
 from bantre.system.section import Section
 
-from .conftest import client_fixture, session_fixture
+from .conftest import Session, client_fixture, session_fixture
 
 
 def test_section_orm(session: Session):

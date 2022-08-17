@@ -1,9 +1,7 @@
-from sqlmodel import Session
-
 from bantre.system.group import Group
 from bantre.system.user import User
 
-from .conftest import client_fixture, session_fixture
+from .conftest import Session, client_fixture, session_fixture
 
 
 def test_group_orm(session: Session):

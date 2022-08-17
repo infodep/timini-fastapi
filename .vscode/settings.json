@@ -17,9 +17,11 @@
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.tabSize": 4
+        "editor.tabSize": 4,
     },
     "files.insertFinalNewline": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.mypyEnabled": true
     // "editor.formatOnSave": true // Anbefaler å legge denne inn i user settings, vil ikke påtvinge noen
     // Ellers kan man formatte med Shift+Alt+F
 }

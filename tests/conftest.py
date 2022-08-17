@@ -6,6 +6,12 @@ from sqlmodel.pool import StaticPool
 
 from bantre.app import app
 from bantre.database import get_session
+from bantre.system.user import User
+from bantre.util.auth import hash_password
+
+
+admin_user_username: str = "admin"
+admin_user_password: str = "adminpass"
 
 
 @pytest.fixture(name="session")
@@ -27,3 +33,19 @@ def client_fixture(session: Session):
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="admin_user")
+def admin_fixture(session: Session):
+    hashed_password = hash_password(admin_user_password)
+    admin_user = User(
+        username=admin_user_username, email="admin@timini.no", password=hashed_password
+    )
+    session.add(admin_user)
+    session.commit()
+    session.refresh(admin_user)
+    try:
+        yield admin_user
+    finally:
+        session.delete(admin_user)
+        session.commit()

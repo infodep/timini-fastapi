@@ -1,11 +1,9 @@
-from sqlmodel import Session
-
 from bantre.modules.article.article_model import Article
 from bantre.system.entity import Entity
 from bantre.system.section import Section
 from bantre.system.user import User
 
-from .conftest import client_fixture, session_fixture
+from .conftest import Session, client_fixture, session_fixture
 
 
 def test_article_orm(session: Session):

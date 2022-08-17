@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, List, Literal, Optional
 
 from sqlalchemy.sql.functions import func
-from sqlmodel import Field, SQLModel, Enum
+from sqlmodel import Enum, Field, SQLModel
 from sqlmodel.main import Relationship
 
 

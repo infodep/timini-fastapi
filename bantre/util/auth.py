@@ -1,21 +1,37 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, TypedDict
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from bantre.system.user import User
-from bantre.util import config
+from bantre.util.config import get_settings
 
 from ..database import get_session
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["sha256_crypt", "md5_crypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
+
+settings = get_settings()
+
+
+class AccessToken(BaseModel):
+    """Type hinting for access token jwt dict"""
+
+    user_id: int
+    exp: int
+
+
+class RefreshToken(AccessToken):
+    """Type hinting for refresh token jwt dict"""
+
+    token_id: int
 
 
 def hash_password(password: str) -> str:
@@ -43,12 +59,10 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 
-def decode_token(
-    db: Session, token: str, settings: config.Settings = Depends(config.get_settings)
-) -> User | None:
+def decode_token(db: Session, token: str, key: str) -> User | None:
     try:
-        payload = jwt.decode(token, settings.s)
-        user_id: int = payload.get("user_id")
+        payload = jwt.decode(token, key)
+        user_id: int = payload.get("id")  # type: ignore
         if user_id is None:
             return None
     except JWTError:
@@ -59,7 +73,7 @@ def decode_token(
 def token_required(
     token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
 ) -> User:
-    user = decode_token(db=session, token=token)
+    user = decode_token(db=session, token=token, key=settings.access_token_key)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -76,16 +90,16 @@ def token_optional(
     This function is like token_required, but returns the anonymous user if not validated.
     It is very important to make sure that the front end makes sure it is logged in so that we dont make a bunch of db entries as the anonymous user
     """
-    user = decode_token(db=session, token=token)
+    user = decode_token(db=session, token=token, key=settings.access_token_key)
     if user is None:
-        user = User(id=-1, username="Anonymous", admin=False, email=None)
+        # TODO: Let user be none?
+        user = User(id=-1, username="Anonymous", admin=False, email="", password="")
     return user
 
 
 def create_access_token(
     id: int,
-    expires_delta=Optional[datetime],
-    settings: config.Settings = Depends(config.get_settings),
+    expires_delta: Optional[timedelta],
 ):
     to_encode = {
         "id": id,
@@ -104,8 +118,7 @@ def create_access_token(
 
 def create_refresh_token(
     id: int,
-    expires_delta=Optional[datetime],
-    settings: config.Settings = Depends(config.get_settings),
+    expires_delta: Optional[timedelta],
 ):
     to_encode = {
         "id": id,
